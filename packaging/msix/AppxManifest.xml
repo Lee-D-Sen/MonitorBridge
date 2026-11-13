@@ -20,6 +20,11 @@
   <Resources>
     <Resource Language="en-us" />
     <Resource Language="ko-kr" />
+    <Resource Language="zh-cn" />
+    <Resource Language="hi-in" />
+    <Resource Language="ja-jp" />
+    <Resource Language="es-es" />
+    <Resource Language="de-de" />
   </Resources>
   <Applications>
     <Application Id="MonitorBridge" Executable="MonitorBridge.exe" EntryPoint="Windows.FullTrustApplication">

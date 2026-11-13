@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MonitorBridge.Core;
@@ -26,7 +26,11 @@ public sealed record MonitorSnapshot(
 /// <summary>Core가 만드는 사용자 메시지의 언어. 앱이 시작 시 설정한다.</summary>
 public static class CoreText
 {
-    public static bool English { get; set; }
+    /// <summary>앱이 설정하는 번역 조회 함수(key, args). 없으면 영어 원문을 쓴다.</summary>
+    public static Func<string, object[], string>? Lookup { get; set; }
+
+    public static string T(string key, string english, params object[] args) =>
+        Lookup is { } f ? f(key, args) : string.Format(english, args);
 }
 
 /// <summary>저장되는 모니터별 설정.</summary>
@@ -167,12 +171,9 @@ public static class MonitorMatcher
     /// </summary>
     public static MatchResult Match(IReadOnlyList<MonitorSnapshot> current, IReadOnlyList<MonitorSetting> saved)
     {
-        bool en = CoreText.English;
-        if (saved.Count == 0) return new(false, en ? "No saved settings." : "저장된 설정이 없습니다.", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+        if (saved.Count == 0) return new(false, CoreText.T("core.nosaved", "No saved settings."), Array.Empty<(MonitorSnapshot, MonitorSetting)>());
         if (current.Count != saved.Count)
-            return new(false, en
-                ? $"The number of monitors differs from the saved settings (saved {saved.Count}, now {current.Count})."
-                : $"모니터 수가 저장된 설정({saved.Count}대)과 다릅니다(현재 {current.Count}대).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+            return new(false, CoreText.T("core.count", "The number of monitors differs from the saved settings (saved {0}, now {1}).", saved.Count, current.Count), Array.Empty<(MonitorSnapshot, MonitorSetting)>());
 
         var pairs = new List<(MonitorSnapshot, MonitorSetting)>();
         var unmatchedCur = current.ToList();
@@ -195,9 +196,7 @@ public static class MonitorMatcher
             }
         }
         if (unmatchedCur.Count > 0 || unmatchedSaved.Count > 0)
-            return new(false, en
-                ? "Cannot safely match the saved monitors to the current ones (a monitor was replaced or its port changed)."
-                : "저장된 모니터와 현재 모니터를 안전하게 연결할 수 없습니다(모니터가 바뀌었거나 연결 포트가 달라졌습니다).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+            return new(false, CoreText.T("core.nomatch", "Cannot safely match the saved monitors to the current ones (a monitor was replaced or its port changed)."), Array.Empty<(MonitorSnapshot, MonitorSetting)>());
 
         // 현재 snapshot 순서 유지
         var ordered = current.Select(c => pairs.First(p => ReferenceEquals(p.Item1, c))).ToList();

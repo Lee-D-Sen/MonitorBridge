@@ -40,21 +40,8 @@ public partial class App : Application
 
         bool minimized = e.Args.Contains("--minimized");
         _controller = new AppController();
-        string lang = _controller.Settings.Language ?? "";
-        if (lang is not ("ko" or "en"))
-        {
-            lang = Loc.DefaultFromSystem();
-            if (!minimized)
-            {
-                // 첫 실행: 언어를 직접 고르게 한다(자동 시작 등 --minimized일 땐 묻지 않고 시스템 언어 사용).
-                var dlg = new LanguageDialog(lang);
-                dlg.ShowDialog();
-                lang = dlg.Chosen;
-                _controller.Settings.Language = lang;
-                try { SettingsStore.Save(_controller.Settings); } catch { }
-            }
-        }
-        Loc.Set(lang);
+        // 저장된 언어가 없으면 Windows 표시 언어를 따르고, 지원하지 않는 언어는 영어로 시작한다(창에서 변경 가능).
+        Loc.Set(Loc.Resolve(_controller.Settings.Language));
         if (e.Args.Contains("--process-injected")) _controller.ProcessInjected = true; // 자동 검증용
         int ti = Array.IndexOf(e.Args, "--trace");
         if (ti >= 0 && ti + 1 < e.Args.Length) _controller.EnableTrace(e.Args[ti + 1]);

@@ -117,10 +117,7 @@
                 <Button Style="{StaticResource Btn}" Content="{svc:L btn.reset}" Click="OnReset"/>
                 <CheckBox x:Name="StartupCheck" Content="{svc:L chk.startup}" VerticalAlignment="Center" Margin="8,0,0,0" Click="OnStartupClick"/>
                 <TextBlock Style="{StaticResource Lbl}" Text="{svc:L lang.label}" Margin="16,0,6,0"/>
-                <ComboBox x:Name="LangBox" Width="100" VerticalAlignment="Center" SelectionChanged="OnLangChanged">
-                    <ComboBoxItem Tag="en" Content="English"/>
-                    <ComboBoxItem Tag="ko" Content="한국어"/>
-                </ComboBox>
+                <ComboBox x:Name="LangBox" Width="130" VerticalAlignment="Center" SelectionChanged="OnLangChanged"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button x:Name="ToggleBtn" Style="{StaticResource Btn}" Click="OnToggle" MinWidth="96"/>

@@ -31,7 +31,12 @@ internal partial class MainWindow : Window
         _c.SnapshotsChanged += RebuildVms;
         StartupCheck.IsChecked = _c.Settings.StartWithWindows;
         if (AppPackage.IsPackaged) StartupCheck.Visibility = Visibility.Collapsed;
-        LangBox.SelectedIndex = Loc.Lang == "ko" ? 1 : 0;
+        foreach (var (code, name) in Loc.Languages)
+        {
+            var item = new ComboBoxItem { Content = name, Tag = code };
+            LangBox.Items.Add(item);
+            if (code == Loc.Lang) LangBox.SelectedItem = item;
+        }
         _langReady = true;
         RebuildVms();
     }
