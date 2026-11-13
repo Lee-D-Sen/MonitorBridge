@@ -51,7 +51,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="310"/>
+                <ColumnDefinition Width="350"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1" ClipToBounds="True" Background="White">
@@ -60,7 +60,7 @@
 
             <Border Grid.Column="2" CornerRadius="8" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" Padding="14">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="Panel" Binding.SourceUpdated="OnFieldUpdated">
+                    <StackPanel x:Name="Panel" Margin="0,0,14,0" Binding.SourceUpdated="OnFieldUpdated">
                         <TextBlock Text="{svc:L sel.title}" FontWeight="SemiBold" FontSize="14"/>
                         <TextBlock x:Name="SelTitle" Margin="0,6,0,0" FontWeight="SemiBold" TextWrapping="Wrap"/>
                         <TextBlock x:Name="SelDetail" Foreground="#475569" TextWrapping="Wrap"/>
