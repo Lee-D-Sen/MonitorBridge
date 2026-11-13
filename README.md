@@ -39,3 +39,12 @@ dotnet publish src/MonitorBridge.App -c Release -r win-x64 --self-contained true
 
 ## 알려진 사항
 - 서명되지 않은 빌드는 **Windows 스마트 앱 컨트롤(Smart App Control)** 이 켜진 PC에서 실행이 차단됩니다. 차단되면 코드 서명을 하거나 해당 기능이 꺼진 환경에서 실행해야 합니다.
+
+## 개인정보 / 제거
+- 네트워크로 어떤 데이터도 보내지 않습니다. 설정은 `%APPDATA%\MonitorBridge\settings.json`에만 저장됩니다.
+- 설치 프로그램이 없는 포터블 앱입니다. 제거: "Windows 시작 시 트레이로 실행" 체크 해제 → 트레이에서 종료 → `MonitorBridge.exe`와 `%APPDATA%\MonitorBridge` 폴더 삭제.
+
+## 라이선스 / 코드 서명
+MIT 라이선스([LICENSE](LICENSE)). 서명 정책은 [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md)를 보세요.
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). (승인 후 적용 / applies once approved)

@@ -1,0 +1,49 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet test tests/MonitorBridge.Tests -c Release
+      - run: >
+          dotnet publish src/MonitorBridge.App -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -o dist/MonitorBridge
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: MonitorBridge-unsigned
+          path: dist/MonitorBridge/MonitorBridge.exe
+      # Enabled once SignPath approves the project: set repository variable SIGNPATH_ENABLED=true,
+      # variables SIGNPATH_ORG_ID / SIGNPATH_PROJECT_SLUG / SIGNPATH_POLICY_SLUG and secret SIGNPATH_API_TOKEN.
+      - name: Sign with SignPath
+        if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORG_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Package
+        shell: pwsh
+        run: |
+          $exe = if ('${{ vars.SIGNPATH_ENABLED }}' -eq 'true') { 'signed/MonitorBridge.exe' } else { 'dist/MonitorBridge/MonitorBridge.exe' }
+          Get-AuthenticodeSignature $exe | Format-List Status, SignerCertificate
+          Compress-Archive -Path $exe -DestinationPath "MonitorBridge-${{ github.ref_name }}-win-x64.zip"
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: gh release create "${{ github.ref_name }}" "MonitorBridge-${{ github.ref_name }}-win-x64.zip" --title "${{ github.ref_name }}" --generate-notes
