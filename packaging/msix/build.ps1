@@ -9,7 +9,7 @@ param(
   [string]$IdentityName = "MonitorBridge.Dev",
   [string]$Publisher = "CN=MonitorBridgeDev",
   [string]$PublisherDisplay = "Lee-D-Sen",
-  [string]$DisplayName = "MonitorBridge Cursor Fix",
+  [string]$DisplayName = "MonitorBridge $([char]0x2013) Cursor Fix",
   [string]$ToolsDir = "",                       # folder containing makeappx.exe / signtool.exe
   [string]$OutDir = "$PSScriptRoot\out",
   [switch]$Dev
