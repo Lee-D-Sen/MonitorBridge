@@ -27,7 +27,7 @@ jobs:
       # variables SIGNPATH_ORG_ID / SIGNPATH_PROJECT_SLUG / SIGNPATH_POLICY_SLUG and secret SIGNPATH_API_TOKEN.
       - name: Sign with SignPath
         if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
-        uses: signpath/github-action-submit-signing-request@v1
+        uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORG_ID }}
