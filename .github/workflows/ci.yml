@@ -1,0 +1,19 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet test tests/MonitorBridge.Tests -c Release
+      - run: >
+          dotnet publish src/MonitorBridge.App -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -o dist/MonitorBridge
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MonitorBridge-win-x64
+          path: dist/MonitorBridge/MonitorBridge.exe
