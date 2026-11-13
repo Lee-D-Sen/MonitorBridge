@@ -1,5 +1,7 @@
 # Code Signing Policy
 
+> **Status:** releases from GitHub are currently **not signed**. A SignPath Foundation application is pending; if it is approved, the statement below applies. A Microsoft Store (MSIX) build, signed by Microsoft, is planned.
+
 Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
 
 ## What is signed

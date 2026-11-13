@@ -30,6 +30,7 @@ internal partial class MainWindow : Window
         _c.Changed += UpdateStatus;
         _c.SnapshotsChanged += RebuildVms;
         StartupCheck.IsChecked = _c.Settings.StartWithWindows;
+        if (AppPackage.IsPackaged) StartupCheck.Visibility = Visibility.Collapsed;
         LangBox.SelectedIndex = Loc.Lang == "ko" ? 1 : 0;
         _langReady = true;
         RebuildVms();

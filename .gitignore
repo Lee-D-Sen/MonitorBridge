@@ -4,3 +4,8 @@ dist/
 .vs/
 *.user
 TestResults/
+
+packaging/msix/out/
+*.pfx
+*.msix
+*.cer

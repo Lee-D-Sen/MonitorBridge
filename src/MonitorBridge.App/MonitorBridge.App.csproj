@@ -10,7 +10,7 @@
     <RootNamespace>MonitorBridge.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Product>MonitorBridge</Product>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
@@ -25,4 +25,5 @@
     <Using Include="System.Linq" />
   </ItemGroup>
 </Project>
+
 

@@ -37,14 +37,20 @@ dotnet publish src/MonitorBridge.App -c Release -r win-x64 --self-contained true
 - `src/MonitorBridge.App` — WPF GUI, 트레이, 저수준 마우스 훅 + Raw Input, 모니터 감지. Per-Monitor DPI V2. GUI 좌표(DIP·mm)와 Win32 물리 픽셀을 분리해서 다룹니다.
 - `tests/MonitorBridge.Tests` — 4K 150% + FHD 100%, 높이 어긋남, 음수 좌표, 세로 회전, 3대, 비겹침 구간 등.
 
-## 알려진 사항
-- 서명되지 않은 빌드는 **Windows 스마트 앱 컨트롤(Smart App Control)** 이 켜진 PC에서 실행이 차단됩니다. 차단되면 코드 서명을 하거나 해당 기능이 꺼진 환경에서 실행해야 합니다.
+## 알려진 사항 / 스마트 앱 컨트롤 (Smart App Control)
+이 프로젝트의 exe는 **코드 서명이 되어 있지 않습니다.** Windows 11의 **스마트 앱 컨트롤(SAC)이 켜져 있으면 실행이 차단**됩니다. (SAC가 꺼져 있거나 평가 모드인 PC, 또는 SmartScreen만 쓰는 PC에서는 "추가 정보 → 실행"으로 실행됩니다.)
 
+SAC가 켜진 PC에서 쓰려면 사용자가 직접 설정해야 합니다.
+1. **Windows 보안 → 앱 및 브라우저 컨트롤 → 스마트 앱 컨트롤 설정**에서 *끔*(또는 평가 모드)으로 바꿉니다.
+2. 이 기능은 악성 프로그램 차단용이므로 끄면 보안이 약해집니다. 필요 없어지면 다시 켜세요. (2026년 4월 업데이트 이후에는 재설치 없이 다시 켤 수 있습니다. 일부 업데이트에서는 켜기 스위치가 비활성일 수 있습니다.)
+3. 앱이 SAC 설정을 대신 바꾸거나 우회하지는 않습니다. 소스는 모두 공개되어 있으니 직접 빌드해 확인할 수 있습니다.
+
+> The exe is **not code-signed**. If Windows 11 **Smart App Control** is on, it will block the app; turn it off or to evaluation mode yourself in *Windows Security → App & browser control → Smart App Control settings* (you can re-enable it later), or wait for the Microsoft Store version, which is signed by Microsoft. The app never changes this setting on its own.
+
+Microsoft Store 버전(MSIX)은 준비 중입니다. Store 버전은 Microsoft가 서명하므로 SAC 설정을 바꿀 필요가 없을 것으로 예상합니다(검증 전).
 ## 개인정보 / 제거
 - 네트워크로 어떤 데이터도 보내지 않습니다. 설정은 `%APPDATA%\MonitorBridge\settings.json`에만 저장됩니다.
 - 설치 프로그램이 없는 포터블 앱입니다. 제거: "Windows 시작 시 트레이로 실행" 체크 해제 → 트레이에서 종료 → `MonitorBridge.exe`와 `%APPDATA%\MonitorBridge` 폴더 삭제.
 
-## 라이선스 / 코드 서명
-MIT 라이선스([LICENSE](LICENSE)). 서명 정책은 [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md)를 보세요.
-
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). (승인 후 적용 / applies once approved)
+## 라이선스
+MIT 라이선스([LICENSE](LICENSE)). 코드 서명 현황은 [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md)를 보세요.
