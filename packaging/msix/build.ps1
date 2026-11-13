@@ -9,6 +9,7 @@ param(
   [string]$IdentityName = "MonitorBridge.Dev",
   [string]$Publisher = "CN=MonitorBridgeDev",
   [string]$PublisherDisplay = "Lee-D-Sen",
+  [string]$DisplayName = "MonitorBridge Cursor Fix",
   [string]$ToolsDir = "",                       # folder containing makeappx.exe / signtool.exe
   [string]$OutDir = "$PSScriptRoot\out",
   [switch]$Dev
@@ -23,7 +24,7 @@ Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory "$stage\Assets" -Force | Out-Null
 Copy-Item $exe $stage
 Copy-Item "$PSScriptRoot\Assets\*.png" "$stage\Assets"
-$m = (Get-Content "$PSScriptRoot\AppxManifest.xml" -Raw).Replace('@IDENTITY_NAME@', $IdentityName).Replace('@PUBLISHER@', $Publisher).Replace('@VERSION@', $Version).Replace('@PUBLISHER_DISPLAY@', $PublisherDisplay)
+$m = (Get-Content "$PSScriptRoot\AppxManifest.xml" -Raw).Replace('@IDENTITY_NAME@', $IdentityName).Replace('@PUBLISHER@', $Publisher).Replace('@VERSION@', $Version).Replace('@PUBLISHER_DISPLAY@', $PublisherDisplay).Replace('@DISPLAY_NAME@', $DisplayName)
 [IO.File]::WriteAllText("$stage\AppxManifest.xml", $m, (New-Object Text.UTF8Encoding($false)))
 $msix = Join-Path $OutDir "MonitorBridge_$Version.msix"
 Remove-Item $msix -ErrorAction SilentlyContinue
