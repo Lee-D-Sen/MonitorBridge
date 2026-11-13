@@ -1,4 +1,4 @@
-using System.Windows.Threading;
+﻿using System.Windows.Threading;
 using Microsoft.Win32;
 using MonitorBridge.App.Native;
 using MonitorBridge.Core;
@@ -106,14 +106,14 @@ internal sealed class AppController : IDisposable
 
         string? problem = null;
         DeskLayout? layout = null;
-        if (Snapshots.Count < 2) problem = "모니터가 1대뿐이어서 보정이 필요 없습니다. 보정을 일시 중지했습니다.";
-        else if (!SavedMatchesCurrent) problem = (matchReason ?? "저장된 모니터와 현재 모니터가 다릅니다.") + " 안전을 위해 보정을 껐습니다. 배치를 확인하고 '적용'을 눌러 다시 켜세요.";
+        if (Snapshots.Count < 2) problem = Loc.T("ctl.one");
+        else if (!SavedMatchesCurrent) problem = Loc.T("ctl.mismatch", matchReason ?? Loc.T("ctl.mismatch.default"));
         else
         {
             var match = MonitorMatcher.Match(Snapshots, Settings.Monitors);
             layout = LayoutBuilder.Build(match.Pairs);
             var overlaps = layout.FindOverlaps().ToList();
-            if (overlaps.Count > 0) { problem = "모니터 배치가 서로 겹쳐 있습니다(회전 또는 해상도 변경 후일 수 있음). 배치를 조정하고 '적용'을 눌러 주세요."; layout = null; }
+            if (overlaps.Count > 0) { problem = Loc.T("ctl.overlap.run"); layout = null; }
         }
 
         if (layout is null)
@@ -133,14 +133,14 @@ internal sealed class AppController : IDisposable
     /// <summary>초안을 검증해 저장하고 보정을 켠다. 실패하면 이유를 반환한다.</summary>
     public string? Apply(IReadOnlyList<MonitorSetting> draft)
     {
-        if (Snapshots.Count < 2) return "모니터가 2대 이상일 때 보정할 수 있습니다.";
+        if (Snapshots.Count < 2) return Loc.T("ctl.need2");
         foreach (var d in draft)
             if (!(d.NativeWidthMm >= 100 && d.NativeHeightMm >= 60 && d.NativeWidthMm <= 3000 && d.NativeHeightMm <= 3000))
-                return "화면 크기가 올바르지 않습니다(가로 100~3000mm, 세로 60~3000mm).";
+                return Loc.T("ctl.badsize");
         var pairs = Snapshots.Select((s, i) => (s, draft[i])).ToList();
         var layout = LayoutBuilder.Build(pairs);
         var overlaps = layout.FindOverlaps().ToList();
-        if (overlaps.Count > 0) return "모니터가 책상 위에서 서로 겹쳐 있습니다. 겹치지 않게 배치해 주세요.";
+        if (overlaps.Count > 0) return Loc.T("ctl.overlap.apply");
 
         Settings.Monitors = draft.Select((d, i) => Clone(d, Snapshots[i])).ToList();
         Settings.Enabled = true;

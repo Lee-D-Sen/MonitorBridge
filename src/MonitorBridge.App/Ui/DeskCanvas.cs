@@ -1,7 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using MonitorBridge.App.Services;
 using MonitorBridge.Core;
 
 namespace MonitorBridge.App.Ui;
@@ -103,7 +104,7 @@ internal sealed class DeskCanvas : FrameworkElement
         }
 
         // 범례
-        var legend = new FormattedText("■ 초록 선: 커서가 넘나드는 구간 (그 밖의 경계는 막힘)", CultureInfo.CurrentUICulture,
+        var legend = new FormattedText(Loc.T("canvas.legend"), CultureInfo.CurrentUICulture,
             FlowDirection.LeftToRight, new Typeface("Segoe UI"), 12, Brush("#15803D"), dpi);
         dc.DrawText(legend, new Point(10, ActualHeight - 22));
     }

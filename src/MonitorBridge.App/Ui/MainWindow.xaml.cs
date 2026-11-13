@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,6 +16,9 @@ internal partial class MainWindow : Window
 
     public bool ExitRequested { get; set; }
     public event Action? FirstHide;
+    /// <summary>사용자가 언어를 바꿨다. App이 창을 다시 만든다.</summary>
+    public event Action<string>? LanguageChosen;
+    private bool _langReady;
     private bool _hidFirst;
 
     public MainWindow(AppController controller)
@@ -27,6 +30,8 @@ internal partial class MainWindow : Window
         _c.Changed += UpdateStatus;
         _c.SnapshotsChanged += RebuildVms;
         StartupCheck.IsChecked = _c.Settings.StartWithWindows;
+        LangBox.SelectedIndex = Loc.Lang == "ko" ? 1 : 0;
+        _langReady = true;
         RebuildVms();
     }
 
@@ -43,13 +48,13 @@ internal partial class MainWindow : Window
         Panel.IsEnabled = vm is not null;
         SelTitle.Text = vm?.Title ?? "";
         SelDetail.Text = vm?.Detail ?? "";
-        SelSource.Text = vm is null ? "" : "크기 출처: " + vm.SizeSource;
+        SelSource.Text = vm is null ? "" : Loc.T("sel.source", vm.SizeSource);
     }
 
     private void OnFieldUpdated(object? sender, DataTransferEventArgs e)
     {
         Desk.InvalidateVisual();
-        if (Desk.Selected is { } vm) SelSource.Text = "크기 출처: " + vm.SizeSource;
+        if (Desk.Selected is { } vm) SelSource.Text = Loc.T("sel.source", vm.SizeSource);
         UpdateStatus();
     }
 
@@ -73,27 +78,27 @@ internal partial class MainWindow : Window
         {
             case RuntimeState.On:
                 bg = "#DCFCE7"; fg = "#166534";
-                title = "● 보정 켜짐";
-                detail = $"모니터 {_c.Snapshots.Count}대 · 통과 가능한 경계 구간 {edges}곳" + (dirty ? "  —  편집한 내용은 '적용'을 눌러야 반영됩니다." : "");
+                title = Loc.T("banner.on");
+                detail = Loc.T("banner.on.detail", _c.Snapshots.Count, edges) + (dirty ? Loc.T("banner.on.dirty") : "");
                 break;
             case RuntimeState.Suspended:
                 bg = "#FEF3C7"; fg = "#92400E";
-                title = "▲ 보정 일시 중지 (Windows 기본 동작)";
-                detail = _c.Problem ?? "화면 구성을 다시 확인하는 중입니다.";
+                title = Loc.T("banner.susp");
+                detail = _c.Problem ?? Loc.T("banner.susp.detail");
                 break;
             default:
                 bg = "#E2E8F0"; fg = "#334155";
-                title = "○ 보정 꺼짐 (Windows 기본 동작)";
+                title = Loc.T("banner.off");
                 detail = _c.Snapshots.Count < 2
-                    ? "모니터가 1대로 감지되었습니다. 2대 이상 연결하면 보정할 수 있습니다."
-                    : "초록 선 구간이 실제 책상 위 배치와 맞는지 확인한 뒤 '적용'을 누르면 켜집니다.";
+                    ? Loc.T("banner.off.one")
+                    : Loc.T("banner.off.many");
                 break;
         }
         Banner.Background = (Brush)new BrushConverter().ConvertFromString(bg)!;
         BannerTitle.Foreground = (Brush)new BrushConverter().ConvertFromString(fg)!;
         BannerTitle.Text = title;
         BannerDetail.Text = detail;
-        ToggleBtn.Content = _c.State == RuntimeState.On ? "보정 끄기" : "보정 켜기";
+        ToggleBtn.Content = _c.State == RuntimeState.On ? Loc.T("btn.off") : Loc.T("btn.on");
         ApplyBtn.IsEnabled = _c.Snapshots.Count >= 2;
         ToggleBtn.IsEnabled = _c.Snapshots.Count >= 2 || _c.State == RuntimeState.On;
     }
@@ -103,7 +108,7 @@ internal partial class MainWindow : Window
     {
         Keyboard.ClearFocus();
         var err = _c.Apply(_vms.Select(v => v.Setting).ToList());
-        if (err is not null) MessageBox.Show(this, err, "적용할 수 없습니다", MessageBoxButton.OK, MessageBoxImage.Warning);
+        if (err is not null) MessageBox.Show(this, err, Loc.T("dlg.apply.fail"), MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void OnToggle(object sender, RoutedEventArgs e)
@@ -115,8 +120,8 @@ internal partial class MainWindow : Window
     private void OnReset(object sender, RoutedEventArgs e)
     {
         var r = MessageBox.Show(this,
-            "저장된 배치를 지우고 Windows 배치 기준 기본값으로 되돌립니다.\n보정은 꺼지며, 다시 켜려면 '적용'을 눌러야 합니다.\n(Windows 디스플레이 설정은 바뀌지 않습니다.)",
-            "기본값으로 되돌리기", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            Loc.T("dlg.reset.text"),
+            Loc.T("dlg.reset.title"), MessageBoxButton.OKCancel, MessageBoxImage.Question);
         if (r == MessageBoxResult.OK) _c.ResetToDefaults();
     }
 
@@ -129,8 +134,14 @@ internal partial class MainWindow : Window
         catch (Exception ex)
         {
             StartupCheck.IsChecked = !StartupCheck.IsChecked;
-            MessageBox.Show(this, "시작 프로그램 설정을 바꾸지 못했습니다.\n" + ex.Message, "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, Loc.T("dlg.startup.fail", ex.Message), Loc.T("dlg.error"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private void OnLangChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_langReady || LangBox.SelectedItem is not ComboBoxItem { Tag: string lang } || lang == Loc.Lang) return;
+        LanguageChosen?.Invoke(lang);
     }
 
     // ---------- 이웃에 맞춤 ----------

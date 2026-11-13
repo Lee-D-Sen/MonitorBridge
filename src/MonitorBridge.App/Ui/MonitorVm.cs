@@ -1,4 +1,5 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using MonitorBridge.App.Services;
 using MonitorBridge.Core;
 
 namespace MonitorBridge.App.Ui;
@@ -16,13 +17,13 @@ internal sealed class MonitorVm : INotifyPropertyChanged
     public void RaiseAll() => Raise(nameof(XMm), nameof(YMm), nameof(WidthMm), nameof(HeightMm), nameof(DiagonalInch), nameof(SizeSource), nameof(Title));
 
     public int Number => Snap.DisplayNumber;
-    public string Title => $"{Snap.DisplayNumber}번 · {Snap.FriendlyName}";
-    public string Detail => $"{Snap.Bounds.Width}×{Snap.Bounds.Height} · 배율 {Snap.ScalePercent}% · {OrientationText}";
+    public string Title => Loc.T("vm.title", Snap.DisplayNumber, Snap.FriendlyName);
+    public string Detail => Loc.T("vm.detail", Snap.Bounds.Width, Snap.Bounds.Height, Snap.ScalePercent, OrientationText);
     public string OrientationText => Snap.Rotation switch
     {
-        Rotation.Deg0 => "가로", Rotation.Deg90 => "세로(90°)", Rotation.Deg180 => "가로(뒤집힘)", _ => "세로(270°)",
+        Rotation.Deg0 => Loc.T("vm.landscape"), Rotation.Deg90 => Loc.T("vm.portrait90"), Rotation.Deg180 => Loc.T("vm.landscape180"), _ => Loc.T("vm.portrait270"),
     };
-    public string SizeSource => Setting.SizeUserDefined ? "직접 입력/추정값" : "모니터 정보(EDID)";
+    public string SizeSource => Setting.SizeUserDefined ? Loc.T("vm.src.user") : Loc.T("vm.src.edid");
 
     // 사용자가 보는 방향(회전 적용) 기준의 실제 크기
     public double WidthMm

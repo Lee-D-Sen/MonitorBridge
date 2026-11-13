@@ -23,6 +23,12 @@ public sealed record MonitorSnapshot(
     public (int W, int H) NativePixels => Rotation.IsPortrait() ? (Bounds.Height, Bounds.Width) : (Bounds.Width, Bounds.Height);
 }
 
+/// <summary>Core가 만드는 사용자 메시지의 언어. 앱이 시작 시 설정한다.</summary>
+public static class CoreText
+{
+    public static bool English { get; set; }
+}
+
 /// <summary>저장되는 모니터별 설정.</summary>
 public sealed class MonitorSetting
 {
@@ -44,6 +50,8 @@ public sealed class AppSettings
     public int Version { get; set; } = 1;
     public bool Enabled { get; set; }
     public bool StartWithWindows { get; set; }
+    /// <summary>UI 언어("ko"/"en"). null이면 아직 선택하지 않음(첫 실행).</summary>
+    public string? Language { get; set; }
     public List<MonitorSetting> Monitors { get; set; } = new();
 
     private static readonly JsonSerializerOptions Options = new()
@@ -159,9 +167,12 @@ public static class MonitorMatcher
     /// </summary>
     public static MatchResult Match(IReadOnlyList<MonitorSnapshot> current, IReadOnlyList<MonitorSetting> saved)
     {
-        if (saved.Count == 0) return new(false, "저장된 설정이 없습니다.", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+        bool en = CoreText.English;
+        if (saved.Count == 0) return new(false, en ? "No saved settings." : "저장된 설정이 없습니다.", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
         if (current.Count != saved.Count)
-            return new(false, $"모니터 수가 저장된 설정({saved.Count}대)과 다릅니다(현재 {current.Count}대).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+            return new(false, en
+                ? $"The number of monitors differs from the saved settings (saved {saved.Count}, now {current.Count})."
+                : $"모니터 수가 저장된 설정({saved.Count}대)과 다릅니다(현재 {current.Count}대).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
 
         var pairs = new List<(MonitorSnapshot, MonitorSetting)>();
         var unmatchedCur = current.ToList();
@@ -184,7 +195,9 @@ public static class MonitorMatcher
             }
         }
         if (unmatchedCur.Count > 0 || unmatchedSaved.Count > 0)
-            return new(false, "저장된 모니터와 현재 모니터를 안전하게 연결할 수 없습니다(모니터가 바뀌었거나 연결 포트가 달라졌습니다).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
+            return new(false, en
+                ? "Cannot safely match the saved monitors to the current ones (a monitor was replaced or its port changed)."
+                : "저장된 모니터와 현재 모니터를 안전하게 연결할 수 없습니다(모니터가 바뀌었거나 연결 포트가 달라졌습니다).", Array.Empty<(MonitorSnapshot, MonitorSetting)>());
 
         // 현재 snapshot 순서 유지
         var ordered = current.Select(c => pairs.First(p => ReferenceEquals(p.Item1, c))).ToList();

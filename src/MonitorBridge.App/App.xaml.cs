@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using MonitorBridge.App.Services;
 using MonitorBridge.App.Ui;
 using WinForms = System.Windows.Forms;
@@ -34,19 +34,33 @@ public partial class App : Application
 
         DispatcherUnhandledException += (_, ex) =>
         {
-            MessageBox.Show("예기치 않은 오류가 발생했습니다.\n" + ex.Exception.Message, "MonitorBridge", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Loc.T("app.error", ex.Exception.Message), "MonitorBridge", MessageBoxButton.OK, MessageBoxImage.Error);
             ex.Handled = true;
         };
 
         bool minimized = e.Args.Contains("--minimized");
         _controller = new AppController();
+        string lang = _controller.Settings.Language ?? "";
+        if (lang is not ("ko" or "en"))
+        {
+            lang = Loc.DefaultFromSystem();
+            if (!minimized)
+            {
+                // 첫 실행: 언어를 직접 고르게 한다(자동 시작 등 --minimized일 땐 묻지 않고 시스템 언어 사용).
+                var dlg = new LanguageDialog(lang);
+                dlg.ShowDialog();
+                lang = dlg.Chosen;
+                _controller.Settings.Language = lang;
+                try { SettingsStore.Save(_controller.Settings); } catch { }
+            }
+        }
+        Loc.Set(lang);
         if (e.Args.Contains("--process-injected")) _controller.ProcessInjected = true; // 자동 검증용
         int ti = Array.IndexOf(e.Args, "--trace");
         if (ti >= 0 && ti + 1 < e.Args.Length) _controller.EnableTrace(e.Args[ti + 1]);
 
         _controller.Start();
-        _window = new MainWindow(_controller);
-        _window.FirstHide += () => _tray?.ShowBalloonTip(3000, "MonitorBridge", "창을 닫아도 트레이에서 계속 동작합니다.", WinForms.ToolTipIcon.Info);
+        CreateWindow();
         CreateTray();
         _controller.Changed += UpdateTray;
         UpdateTray();
@@ -60,6 +74,31 @@ public partial class App : Application
         if (!minimized) ShowWindow();
     }
 
+    private void CreateWindow()
+    {
+        _window = new MainWindow(_controller!);
+        _window.FirstHide += () => _tray?.ShowBalloonTip(3000, "MonitorBridge", Loc.T("tray.hint"), WinForms.ToolTipIcon.Info);
+        _window.LanguageChosen += OnLanguageChosen;
+    }
+
+    private void OnLanguageChosen(string lang)
+    {
+        if (_controller is null) return;
+        _controller.Settings.Language = lang;
+        try { SettingsStore.Save(_controller.Settings); } catch { }
+        Loc.Set(lang);
+        var old = _window;
+        // 현재 이벤트 처리가 끝난 뒤 창을 다시 만든다(문자열은 창 생성 시점에 정해짐).
+        Dispatcher.BeginInvoke(() =>
+        {
+            CreateWindow();
+            RebuildTrayMenu();
+            _controller.Refresh();
+            if (old is not null) { old.ExitRequested = true; old.Close(); }
+            ShowWindow();
+        });
+    }
+
     private void ShowWindow()
     {
         if (_window is null) return;
@@ -69,15 +108,30 @@ public partial class App : Application
         _window.Activate();
     }
 
-    private void CreateTray()
+    private WinForms.ContextMenuStrip BuildTrayMenu()
     {
         var menu = new WinForms.ContextMenuStrip();
-        menu.Items.Add("창 열기", null, (_, _) => ShowWindow());
-        _toggleItem = new WinForms.ToolStripMenuItem("보정 켜기/끄기");
+        menu.Items.Add(Loc.T("tray.open"), null, (_, _) => ShowWindow());
+        _toggleItem = new WinForms.ToolStripMenuItem(Loc.T("tray.toggle"));
         _toggleItem.Click += (_, _) => ToggleFromTray();
         menu.Items.Add(_toggleItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
-        menu.Items.Add("종료", null, (_, _) => ExitApp());
+        menu.Items.Add(Loc.T("tray.exit"), null, (_, _) => ExitApp());
+        return menu;
+    }
+
+    private void RebuildTrayMenu()
+    {
+        if (_tray is null) return;
+        var old = _tray.ContextMenuStrip;
+        _tray.ContextMenuStrip = BuildTrayMenu();
+        old?.Dispose();
+        UpdateTray();
+    }
+
+    private void CreateTray()
+    {
+        var menu = BuildTrayMenu();
 
         var icon = GetResourceStream(new Uri("pack://application:,,,/Assets/app.ico", UriKind.Absolute))!.Stream;
         _tray = new WinForms.NotifyIcon
@@ -106,9 +160,9 @@ public partial class App : Application
     private void UpdateTray()
     {
         if (_tray is null || _controller is null) return;
-        string state = _controller.State switch { RuntimeState.On => "켜짐", RuntimeState.Suspended => "일시 중지", _ => "꺼짐" };
-        _tray.Text = "MonitorBridge — 보정 " + state;   // 63자 제한 내
-        if (_toggleItem is not null) _toggleItem.Text = _controller.State == RuntimeState.On ? "보정 끄기" : "보정 켜기";
+        string state = _controller.State switch { RuntimeState.On => Loc.T("state.on"), RuntimeState.Suspended => Loc.T("state.suspended"), _ => Loc.T("state.off") };
+        _tray.Text = Loc.T("tray.text", state);   // 63자 제한 내
+        if (_toggleItem is not null) _toggleItem.Text = _controller.State == RuntimeState.On ? Loc.T("tray.on") : Loc.T("tray.off");
     }
 
     private void ExitApp()

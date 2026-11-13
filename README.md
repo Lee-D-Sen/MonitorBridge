@@ -9,6 +9,7 @@ Windows 10/11 멀티 모니터에서 해상도·배율이 다른 화면 사이�
 - 보정 끄기 / 트레이 종료 시 마우스 훅이 즉시 해제되어 Windows 기본 동작으로 돌아갑니다.
 
 ## 첫 설정
+0. 처음 실행하면 언어(English / 한국어)를 고르는 창이 뜹니다. 이후 메인 창 아래쪽에서 바꿀 수 있습니다. (On first launch you pick English or Korean; it can be changed later in the main window.)
 1. `MonitorBridge.exe` 실행(관리자 권한 불필요).
 2. **화면 식별**으로 실제 모니터와 번호를 대조합니다.
 3. 오른쪽 패널에서 각 모니터의 **실제 크기**(인치 또는 가로·세로 mm)를 확인합니다. 모니터 정보(EDID)를 못 읽은 경우 24인치 추정값이므로 직접 입력하세요.

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using MonitorBridge.Core;
 
@@ -48,7 +48,7 @@ internal sealed class MouseCorrector : IDisposable
         _thread.SetApartmentState(ApartmentState.STA);
         _thread.Start();
         ready.Wait(3000);
-        if (!ok) { _active = false; throw new InvalidOperationException("마우스 훅을 설치하지 못했습니다."); }
+        if (!ok) { _active = false; throw new InvalidOperationException(Services.Loc.T("hook.fail")); }
     }
 
     public void Update(DeskLayout layout)
